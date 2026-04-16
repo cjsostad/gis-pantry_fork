@@ -112,9 +112,16 @@ class ExportSingleLayout(object):
             parameterType="Required",
             direction="Input"
         )
-        # Set default to current project folder
+        # Set default to current project folder when available; otherwise
+        # fall back to the current ArcPy workspace or the process working directory.
         aprx = arcpy.mp.ArcGISProject("CURRENT")
-        workSpace.value = os.path.dirname(aprx.filePath)
+        project_path = aprx.filePath
+        if project_path:
+            workSpace.value = os.path.dirname(project_path)
+        elif arcpy.env.workspace:
+            workSpace.value = arcpy.env.workspace
+        else:
+            workSpace.value = os.getcwd()
 
         fileName = arcpy.Parameter(
             displayName="File name you want for your output",
