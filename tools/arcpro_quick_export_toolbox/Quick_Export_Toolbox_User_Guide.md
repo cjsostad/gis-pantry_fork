@@ -49,7 +49,7 @@ Use this tool when your project contains a single layout. It will automatically 
 | **Select export format** | Choose the output file type: |
 | | • **PDF** — Best for sharing, printing, and multi-page documents. |
 | | • **JPEG** — Good for inserting into presentations or documents. |
-| **Include Georeferencing Information** | When checked (the default), the exported PDF will include georeferencing information. |
+| **Include Georeferencing Information** | When checked, georeferencing-related sidecar files created during export are kept. When unchecked, those sidecar files are removed after export. This option does not currently control embedded georeferencing in exported PDFs. |
 
 ### Steps
 

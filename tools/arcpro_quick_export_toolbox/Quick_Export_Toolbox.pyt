@@ -112,9 +112,16 @@ class ExportSingleLayout(object):
             parameterType="Required",
             direction="Input"
         )
-        # Set default to current project folder
+        # Set default to current project folder when available; otherwise
+        # fall back to the current ArcPy workspace or the process working directory.
         aprx = arcpy.mp.ArcGISProject("CURRENT")
-        workSpace.value = os.path.dirname(aprx.filePath)
+        project_path = aprx.filePath
+        if project_path:
+            workSpace.value = os.path.dirname(project_path)
+        elif arcpy.env.workspace:
+            workSpace.value = arcpy.env.workspace
+        else:
+            workSpace.value = os.getcwd()
 
         fileName = arcpy.Parameter(
             displayName="File name you want for your output",
@@ -174,11 +181,31 @@ class ExportSingleLayout(object):
             include_geo = parameters[4].value
 
             aprx = arcpy.mp.ArcGISProject("CURRENT")
-            layout = aprx.listLayouts()[0]
+            layouts = aprx.listLayouts()
+            if len(layouts) != 1:
+                if len(layouts) == 0:
+                    arcpy.AddError(
+                        "This tool requires the current project to contain exactly one "
+                        "layout, but the project contains no layouts."
+                    )
+                else:
+                    arcpy.AddError(
+                        f"This tool requires the current project to contain exactly one "
+                        f"layout, but the project contains {len(layouts)} layouts. "
+                        "Use the single-layout-from-multiple tool to choose a layout, "
+                        "or remove extra layouts and try again."
+                    )
+                raise arcpy.ExecuteError
+
+            layout = layouts[0]
             arcpy.env.overwriteOutput = True
 
-            if not file_name.lower().endswith(f".{format_type.lower()}"):
-                file_name += f".{format_type.lower()}"
+            extension_map = {
+                "PDF": ".pdf",
+                "JPEG": ".jpg"
+            }
+            base_name, _ = os.path.splitext(file_name)
+            file_name = base_name + extension_map.get(format_type, "")
 
             export_layout(
                 layout, workSpace_path, file_name, resolution_level,
@@ -245,8 +272,10 @@ class FromMultipleExportSingleLayout(object):
             direction="Input"
         )
         workSpace.filter.list = ["Local Database", "File System"]
-        # Set default to current project folder
-        workSpace.value = os.path.dirname(aprx.filePath)
+        # Set default to current project folder, or fall back to the user's
+        # home directory when the current project has not been saved yet.
+        project_folder = os.path.dirname(aprx.filePath) if aprx.filePath else ""
+        workSpace.value = project_folder or os.path.expanduser("~")
 
         resolutionParam = arcpy.Parameter(
             displayName="Select vector resolution",
@@ -386,9 +415,14 @@ class ExportMultipleLayoutsToSingleFile(object):
             parameterType="Required",
             direction="Input"
         )
-        # Set default to current project folder
+        # Set default to current project folder, or fall back to the current
+        # working directory if the project has not been saved yet.
         aprx = arcpy.mp.ArcGISProject("CURRENT")
-        workSpace.value = os.path.dirname(aprx.filePath)
+        if aprx.filePath:
+            default_output_folder = os.path.dirname(aprx.filePath)
+        else:
+            default_output_folder = os.getcwd()
+        workSpace.value = default_output_folder
 
         geoParam = arcpy.Parameter(
             displayName="Include Georeferencing Information",
