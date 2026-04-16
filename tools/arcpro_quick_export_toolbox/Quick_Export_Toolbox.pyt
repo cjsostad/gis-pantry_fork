@@ -426,6 +426,7 @@ class ExportMultipleLayoutsToSingleFile(object):
                 "Low (150 DPI)": 150
             }
             dpi = resolution_map.get(resolution, 300)
+            arcpy.env.overwriteOutput = True
             arcpy.AddMessage(
                 f"Exporting layouts: {layout_names} to {format_type} in "
                 f"{output_folder} at {dpi} DPI"
