@@ -200,8 +200,12 @@ class ExportSingleLayout(object):
             layout = layouts[0]
             arcpy.env.overwriteOutput = True
 
-            if not file_name.lower().endswith(f".{format_type.lower()}"):
-                file_name += f".{format_type.lower()}"
+            extension_map = {
+                "PDF": ".pdf",
+                "JPEG": ".jpg"
+            }
+            base_name, _ = os.path.splitext(file_name)
+            file_name = base_name + extension_map.get(format_type, "")
 
             export_layout(
                 layout, workSpace_path, file_name, resolution_level,
