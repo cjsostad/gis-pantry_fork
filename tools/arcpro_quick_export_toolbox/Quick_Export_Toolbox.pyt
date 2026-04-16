@@ -174,7 +174,23 @@ class ExportSingleLayout(object):
             include_geo = parameters[4].value
 
             aprx = arcpy.mp.ArcGISProject("CURRENT")
-            layout = aprx.listLayouts()[0]
+            layouts = aprx.listLayouts()
+            if len(layouts) != 1:
+                if len(layouts) == 0:
+                    arcpy.AddError(
+                        "This tool requires the current project to contain exactly one "
+                        "layout, but the project contains no layouts."
+                    )
+                else:
+                    arcpy.AddError(
+                        f"This tool requires the current project to contain exactly one "
+                        f"layout, but the project contains {len(layouts)} layouts. "
+                        "Use the single-layout-from-multiple tool to choose a layout, "
+                        "or remove extra layouts and try again."
+                    )
+                raise arcpy.ExecuteError
+
+            layout = layouts[0]
             arcpy.env.overwriteOutput = True
 
             if not file_name.lower().endswith(f".{format_type.lower()}"):
