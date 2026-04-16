@@ -386,9 +386,14 @@ class ExportMultipleLayoutsToSingleFile(object):
             parameterType="Required",
             direction="Input"
         )
-        # Set default to current project folder
+        # Set default to current project folder, or fall back to the current
+        # working directory if the project has not been saved yet.
         aprx = arcpy.mp.ArcGISProject("CURRENT")
-        workSpace.value = os.path.dirname(aprx.filePath)
+        if aprx.filePath:
+            default_output_folder = os.path.dirname(aprx.filePath)
+        else:
+            default_output_folder = os.getcwd()
+        workSpace.value = default_output_folder
 
         geoParam = arcpy.Parameter(
             displayName="Include Georeferencing Information",
