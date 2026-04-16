@@ -245,8 +245,10 @@ class FromMultipleExportSingleLayout(object):
             direction="Input"
         )
         workSpace.filter.list = ["Local Database", "File System"]
-        # Set default to current project folder
-        workSpace.value = os.path.dirname(aprx.filePath)
+        # Set default to current project folder, or fall back to the user's
+        # home directory when the current project has not been saved yet.
+        project_folder = os.path.dirname(aprx.filePath) if aprx.filePath else ""
+        workSpace.value = project_folder or os.path.expanduser("~")
 
         resolutionParam = arcpy.Parameter(
             displayName="Select vector resolution",
